@@ -99,6 +99,13 @@ rediscovering the same context.
 
 ## Runtime Notes
 
+- Studio Web keeps the Assistant iframe URL stable. Project/profile/theme changes
+  arrive through `lib_ConvertigoAssistant.context` and `select`, not iframe
+  navigation. `GetTheme.applyAssistantHostTheme` applies Studio theme updates
+  without persisting them and replays context received before initialization.
+  Keep the NoCode light-theme policy unchanged. Run
+  `node tests/assistant_host_theme.test.js` when changing this contract.
+
 - No WebSocket dependency for now. Use the existing long-polling path for agent
   event reads.
 - Keep polling reasonable; avoid noisy idle polling in Studio logs.

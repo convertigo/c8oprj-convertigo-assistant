@@ -59,7 +59,7 @@ assert.match(footerSource, /\.agent-prompt-model-select \{\s+max-width: 220px;/)
 assert.match(footerSource, /@media \(max-width: 640px\)[\s\S]*?\.agent-prompt-model-select \{\s+max-width: 160px;/);
 assert.match(pageSource, /lib_ConvertigoMCP", version: "0\.2\.4", tag: "v0\.2\.4"/);
 assert.match(pageSource, /lib_ConvertigoAgentBridge", version: "0\.4\.4", tag: "v0\.4\.4"/);
-assert.match(pageSource, /lib_ConvertigoAssistant", version: "1\.4\.5", tag: "v1\.4\.5"/);
+assert.match(pageSource, /lib_ConvertigoAssistant", version: "1\.4\.6", tag: "v1\.4\.6"/);
 assert.equal((appSource.match(/setTimeout\(autoOpenAgentFromStudioView, 0\)/g) || []).length, 2);
 assert.match(appSource, /lib_ConvertigoAssistant\.GetVersion[\s\S]*?"noLoading": "plain:true"/);
 assert.match(pageSource, /return state\.primaryProject \|\| ''''/);

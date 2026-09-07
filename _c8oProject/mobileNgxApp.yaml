@@ -435,6 +435,7 @@ tplProjectName: mobilebuilder_tpl_8_4_0_ngx
                             }
                             var keys = [
                                 ''assistantSurface'', ''assistantContext'', ''agentProfile'', ''skillProfile'',
+                                ''theme'', ''darkTheme'', ''dark-theme'',
                                 ''projectContext'', ''defaultProject'', ''projectScope'', ''userId'',
                                 ''codexHomeScope'', ''vibeHomeScope'', ''homeScope'',
                                 ''currentUrl'', ''nocodeCurrentUrl'', ''currentRoute'', ''nocodeCurrentRoute'',
@@ -492,6 +493,9 @@ tplProjectName: mobilebuilder_tpl_8_4_0_ngx
                             dynamicPage.agentHostContext = hostContext;
                             page.local.AgentHostContext = hostContext;
                             page.global.AgentHostContext = hostContext;
+                            if (typeof page.global.applyAssistantHostTheme === ''function'') {
+                                page.global.applyAssistantHostTheme(context);
+                            }
                         } catch (eMerge) {
                             try { page.c8o.log.warn(''[Assistant] unable to merge host context'', eMerge); } catch (eLog) {}
                         }
@@ -642,7 +646,23 @@ tplProjectName: mobilebuilder_tpl_8_4_0_ngx
             				applyTheme(prefersDark, false, false);
             			}
             		}
-            		resolve();
+                    // Host context is authoritative after bootstrap; never persist it as a user preference.
+                    page.global.applyAssistantHostTheme = function(context) {
+                        if (!context || noCodeSurface === true) return;
+                        var surface = String(context.assistantSurface || context.assistantContext || '''').toLowerCase();
+                        if (surface !== ''studio'' && page.global.studio !== true) return;
+                        var raw = context.darkTheme;
+                        if (raw === undefined || raw === null) raw = context[''dark-theme''];
+                        if (raw === undefined || raw === null) raw = context.theme;
+                        var dark = raw === true || raw === ''true'' || raw === ''dark'' ? true :
+                            raw === false || raw === ''false'' || raw === ''light'' ? false : null;
+                        if (dark === null) return;
+                        page.global.themeLockedFromUrl = true;
+                        applyTheme(dark, false, true);
+                    };
+                    // A host message can arrive before GetTheme has initialized its callback.
+                    page.global.applyAssistantHostTheme(page.global.AgentHostContext);
+                    resolve();
             '
     comment: Restores and applies the persisted theme preference
   ↓SetLanguage [ngx.components.UICustomAction-1781783632529]: 
