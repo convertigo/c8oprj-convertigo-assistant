@@ -35,8 +35,11 @@ works.
 
 ## Installation
 
-Open the **Convertigo Assistant** view in Convertigo Studio. When the local Agent
-stack is missing, Tigo offers to install the three required projects:
+The hosted Assistant opens How-To by default. Component and Figma assistants
+remain available in Studio; local Agent onboarding is currently early access.
+On Studio 8.4.4 or newer, set the Assistant URL to
+`https://assistant.convertigo.com/#early-access-agent` and reopen the view.
+Tigo then offers to install the three required projects when the stack is missing:
 
 1. `lib_ConvertigoAssistant`
 2. `lib_ConvertigoMCP`
@@ -44,7 +47,16 @@ stack is missing, Tigo offers to install the three required projects:
 
 The one-click flow imports the release packages, switches the Assistant view to
 the local relative URL, and reloads it. Tigo then guides the user through agent
-selection and workspace-local CLI setup.
+selection and workspace-local CLI setup. The saved local URL has no fragment:
+once the view uses the local Assistant and the stack is available, Tigo opens
+without an early access flag, subject to the minimum Studio version. To return
+to classic assistants, configure the hosted URL without the fragment and reopen
+the view. Conversations and installed runtimes are retained. Merely having the
+projects installed does not unlock Tigo in the hosted Assistant.
+
+The fragment enables a preview interface; it is not an authentication token.
+Studio Web server integrations and C8Oforms keep their existing capability and
+authentication requirements.
 
 The companion projects are maintained separately:
 
@@ -64,6 +76,14 @@ Projects imported from local Git checkouts are detected as source-managed and
 are never overwritten by this operation.
 
 ## Development
+
+The `HandlePostMessage` application initialization action owns
+`agentReleasePolicy`: `publiclyAvailable` defaults to `false`, and
+`minimumStudioVersion` is `8.4.4`. To announce general availability, change the
+first setting to `true` through MCP and publish the hosted Assistant. Raise the
+minimum version if required; the preview fragment never bypasses this minimum.
+Run `node tests/assistant_early_access.test.js` after changing this policy or
+its routing integration.
 
 Import the active development branch with:
 

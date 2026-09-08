@@ -24,7 +24,11 @@ scriptContent:
         				}
         			} catch (e2) {}
         			if (this.angularRouter && this.angularRouter.navigate) {
-        				this.angularRouter.navigate([''/path-to-xfirst'', thread], { queryParams: { agentBridge: ''1'' }, replaceUrl: true });
+                        if (this.global && this.global.isAssistantAgentReleaseEnabled && this.global.isAssistantAgentReleaseEnabled()) {
+                            this.angularRouter.navigate([''/path-to-xfirst'', thread], { queryParams: { agentBridge: ''1'' }, preserveFragment: true, replaceUrl: true });
+                        } else {
+                            this.angularRouter.navigate([''/path-to-lightrag''], { preserveFragment: true, replaceUrl: true });
+                        }
         			}
         		} catch (e) {}
         		/*End_c8o_PageInitialization*/

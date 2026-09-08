@@ -10,6 +10,7 @@ componentScriptContent:
         /*Begin_c8o_AppSettings*/
                 /*End_c8o_AppSettings*/
         /*Begin_c8o_AppConstructor*/
+                this.global.agentEarlyAccessAtStartup = /(?:^#|&)early-access-agent(?:&|$)/.test(window.location.hash || '''');
         		/*End_c8o_AppConstructor*/
         /*Begin_c8o_AppInitialization*/
                         /* Uncomment the following lines to enable the i18n feature.
@@ -263,7 +264,8 @@ componentScriptContent:
         	}
         
         	canShowAgentAssistantEntry() {
-        		return this.isAssistantStudioSurface() || this.isAssistantServerAgentSurface();
+                return (this.isAssistantStudioSurface() || this.isAssistantServerAgentSurface())
+                    && !!(this.global && this.global.isAssistantAgentReleaseEnabled && this.global.isAssistantAgentReleaseEnabled());
         	}
         
         	/*End_c8o_AppFunction*/
@@ -353,33 +355,74 @@ tplProjectName: mobilebuilder_tpl_8_4_0_ngx
                         } catch (e) {}
                         return new URLSearchParams('''');
                     };
-                    var isAgentStudioSupported = () => {
-                        try {
-                            var dynamicPage = page as any;
-                            var context = (page.global && page.global.AgentHostContext) || dynamicPage.agentHostContext || (page.local && page.local.AgentHostContext) || {};
-                            var featureVersion = context.agentOnboardingFeatureVersion || context.studioAgentFeatureVersion ||
-                                (page.global && (page.global.agentOnboardingFeatureVersion || page.global.studioAgentFeatureVersion));
-                            if (featureVersion !== undefined && featureVersion !== null && ('''' + featureVersion).replace(/^\\s+|\\s+$/g, '''').length) {
-                                return true;
-                            }
-                            var studioVersion = '''' + (context.studioVersion || (page.global && page.global.studioVersion) || '''');
-                            var match = studioVersion.match(/^(\\d+)\\.(\\d+)\\.(\\d+)/);
-                            if (!match) {
-                                return false;
-                            }
-                            var major = Number(match[1]);
-                            var minor = Number(match[2]);
-                            var patch = Number(match[3]);
-                            return major > 8 || (major === 8 && (minor > 4 || (minor === 4 && patch >= 4)));
-                        } catch (e) {}
-                        return false;
+                    // Release switch for the Eclipse Studio agent; this is not authorization.
+                    if (!page.global) { page.global = {}; }
+                    page.global.agentReleasePolicy = { publiclyAvailable: false, minimumStudioVersion: ''8.4.4'' };
+                    var hasEarlyAccessFragment = function(value) {
+                        var hash = String(value || '''');
+                        var index = hash.indexOf(''#'');
+                        return index >= 0 && hash.substring(index + 1).split(''&'').indexOf(''early-access-agent'') >= 0;
                     };
+                    var earlyAccess = page.global.agentEarlyAccessAtStartup === true || hasEarlyAccessFragment(window.location.hash);
+                    var releaseContext = function() {
+                        var query = {};
+                        getAssistantRouteQuery().forEach(function(value, key) { query[key] = value; });
+                        return Object.assign({}, page.global, query, page.global.AgentHostContext || {});
+                    };
+                    page.global.isAgentEarlyAccess = function() {
+                        if (hasEarlyAccessFragment(window.location.hash) || hasEarlyAccessFragment(releaseContext().assistantUrl)) {
+                            earlyAccess = true;
+                        }
+                        return earlyAccess;
+                    };
+                    page.global.isAssistantAgentReleaseEnabled = function() {
+                        var context = releaseContext();
+                        var surface = String(context.assistantSurface || context.assistantContext || context.surface || '''').toLowerCase();
+                        if ([''admin'', ''console'', ''knowledge'', ''lightrag''].indexOf(surface) >= 0) { return false; }
+                        // Explicit server and NoCode integrations retain their existing capability checks.
+                        if ([''server'', ''nocode'', ''c8oforms''].indexOf(surface) >= 0 || context.assistantRuntime === ''server'') { return true; }
+                        var version = String(context.studioVersion || '''').match(/^(\d+)\.(\d+)\.(\d+)/);
+                        var minimum = page.global.agentReleasePolicy.minimumStudioVersion.split(''.'').map(Number);
+                        if (!version) { return false; }
+                        var compatible = true;
+                        for (var i = 0; i < 3; i++) {
+                            if (Number(version[i + 1]) !== minimum[i]) {
+                                compatible = Number(version[i + 1]) > minimum[i];
+                                break;
+                            }
+                        }
+                        var stackAvailable = context.localAgentStackAvailable === true || String(context.localAgentStackAvailable).toLowerCase() === ''true'';
+                        var localInstallation = context.assistantRuntime === ''local'' && stackAvailable;
+                        return compatible && (localInstallation || page.global.agentReleasePolicy.publiclyAvailable || page.global.isAgentEarlyAccess());
+                    };
+                    page.global.agentActivationAssistantPath = function() {
+                        return ''/projects/lib_ConvertigoAssistant/DisplayObjects/mobile/'';
+                    };
+                    var isAgentRoute = function(url) {
+                        var path = String(url || '''').split(/[?#]/)[0];
+                        var query = new URLSearchParams((String(url || '''').split(''?'')[1] || '''').split(''#'')[0]);
+                        var mode = String(query.get(''agentBridge'') || query.get(''assistantMode'') || query.get(''mode'') || '''').toLowerCase();
+                        var agentMode = [''1'', ''true'', ''agent'', ''local-agent'', ''bridge''].indexOf(mode) >= 0;
+                        return path.indexOf(''/path-to-agent'') === 0 || (path.indexOf(''/path-to-xfirst'') === 0 && agentMode);
+                    };
+                    if (page.angularRouter && page.angularRouter.events && !page.global.agentReleaseNavigationSubscription) {
+                        page.global.agentReleaseNavigationSubscription = page.angularRouter.events.subscribe(function(event) {
+                            if (''navigationTrigger'' in event && event.navigationTrigger && isAgentRoute(event.url) && !page.global.isAssistantAgentReleaseEnabled()) {
+                                page.angularRouter.navigate([''/path-to-lightrag''], { replaceUrl: true, preserveFragment: true });
+                            }
+                            if (''urlAfterRedirects'' in event && typeof event.urlAfterRedirects === ''string'' && earlyAccess && !hasEarlyAccessFragment(window.location.hash)) {
+                                var hash = String(window.location.hash || '''');
+                                window.history.replaceState(window.history.state, document.title,
+                                    window.location.pathname + window.location.search + hash + (hash ? ''&'' : ''#'') + ''early-access-agent'');
+                            }
+                        });
+                    }
                     var autoOpenAgentFromStudioView = () => {
                         try {
                             if (!page.global || page.global.studio !== true) {
                                 return false;
                             }
-                            if (!isAgentStudioSupported()) {
+                            if (!page.global.isAssistantAgentReleaseEnabled()) {
                                 return false;
                             }
                             var params = getAssistantRouteQuery();
@@ -415,6 +458,7 @@ tplProjectName: mobilebuilder_tpl_8_4_0_ngx
                                     assistantMode: ''agent'',
                                     assistantSurface: ''studio''
                                 },
+                                preserveFragment: true,
                                 replaceUrl: true
                             });
                             return true;

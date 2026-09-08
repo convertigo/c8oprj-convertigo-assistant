@@ -309,6 +309,7 @@ scriptContent:
         		return text === "1" || text === "true" || text === "yes" || text === "agent" || text === "local-agent" || text === "local" || text === "bridge";
         	}
         	public isAgentBridgeMode() {
+                    if (!this.global || !this.global.isAssistantAgentReleaseEnabled || !this.global.isAssistantAgentReleaseEnabled()) { return false; }
         		try {
         			if (typeof window !== "undefined" && window.location) {
         				var params0 = new URLSearchParams(window.location.search || "");
@@ -993,9 +994,9 @@ scriptContent:
         			schemaVersion: 1,
                                 channel: "stable",
         			projects: [
-                        { name: "lib_ConvertigoMCP", version: "0.2.4", tag: "v0.2.4", importUrl: "lib_ConvertigoMCP=https://github.com/convertigo/c8oprj-lib-c8o-mcp/releases/download/v0.2.4/lib_ConvertigoMCP.car" },
+                        { name: "lib_ConvertigoMCP", version: "0.2.5", tag: "v0.2.5", importUrl: "lib_ConvertigoMCP=https://github.com/convertigo/c8oprj-lib-c8o-mcp/releases/download/v0.2.5/lib_ConvertigoMCP.car" },
                         { name: "lib_ConvertigoAgentBridge", version: "0.4.4", tag: "v0.4.4", importUrl: "lib_ConvertigoAgentBridge=https://github.com/convertigo/c8oprj-lib-convertigo-agent-bridge/releases/download/v0.4.4/lib_ConvertigoAgentBridge.car" },
-                        { name: "lib_ConvertigoAssistant", version: "1.4.6", tag: "v1.4.6", importUrl: "lib_ConvertigoAssistant=https://github.com/convertigo/c8oprj-lib-convertigo-assistant/releases/download/v1.4.6/lib_ConvertigoAssistant.car" }
+                        { name: "lib_ConvertigoAssistant", version: "1.4.7", tag: "v1.4.7", importUrl: "lib_ConvertigoAssistant=https://github.com/convertigo/c8oprj-lib-convertigo-assistant/releases/download/v1.4.7/lib_ConvertigoAssistant.car" }
         			]
         		};
         	}
@@ -1179,6 +1180,7 @@ scriptContent:
         	}
         
         	public triggerAgentOnboardingAction(forceUpdate = false) {
+                    if (!this.global || !this.global.isAssistantAgentReleaseEnabled || !this.global.isAssistantAgentReleaseEnabled()) { return; }
         		try {
         			var state = this.getAgentOnboardingState ? this.getAgentOnboardingState() : ''ready'';
         			var context = this.getAgentHostContextObject ? this.getAgentHostContextObject() : {};
@@ -1195,8 +1197,8 @@ scriptContent:
         				payload: {
         					projectName: this.getEffectiveProjectName ? this.getEffectiveProjectName() : '''',
         					agentOnboardingFeatureVersion: context.agentOnboardingFeatureVersion || '''',
-                            assistantPreferenceUrl: ''/projects/lib_ConvertigoAssistant/DisplayObjects/mobile/'',
-                            localAssistantPath: ''/projects/lib_ConvertigoAssistant/DisplayObjects/mobile/'',
+                            assistantPreferenceUrl: this.global.agentActivationAssistantPath(),
+                            localAssistantPath: this.global.agentActivationAssistantPath(),
         					projects: this.getAgentActivationProjects ? this.getAgentActivationProjects() : [],
         					forceUpdate: forceUpdate === true
         				}
@@ -2817,34 +2819,13 @@ title: Tigo
         - ↑classname: com.twinsoft.convertigo.beans.ngx.components.MobileSmartSourceType
         - MobileSmartSourceType: plain:modern-header
   ↓ToolBar [ngx.components.UIDynamicElement-1491634231108]: 
-    beanData: |
-      '{
-       "ionBean": "ToolBar",
-       "IonColor": "plain",
-       "BarMode": "plain",
-       "BarSlot": "plain"
-      }'
+    beanData: '{"ionBean":"ToolBar"}'
     tagName: ion-toolbar
     ↓ButtonSet1 [ngx.components.UIDynamicElement-1588171103814]: 
-      beanData: |
-        '{
-         "ionBean": "ButtonSet",
-         "SetPosition": "plain:start",
-         "Collapse": "plain:false"
-        }'
+      beanData: '{"ionBean":"ButtonSet","SetPosition":"plain:start"}'
       tagName: ion-buttons
       ↓BackButton [ngx.components.UIDynamicElement-1643993281257]: 
-        beanData: |
-          '{
-           "ionBean": "BackButton",
-           "ButtonFormType": "plain:button",
-           "Disabled": "plain:false",
-           "IonColor": "plain",
-           "IonIcon": "plain",
-           "IonMode": "plain",
-           "ButtonText": "plain",
-           "DefaultHref": "plain"
-          }'
+        beanData: '{"ionBean":"BackButton"}'
         tagName: ion-back-button
         ↓Class [ngx.components.UIAttribute-1774701000002]: 
           attrName: class
@@ -2853,15 +2834,7 @@ title: Tigo
               - ↑classname: com.twinsoft.convertigo.beans.ngx.components.MobileSmartSourceType
               - MobileSmartSourceType: plain:modern-header-btn
       ↓MenuButton [ngx.components.UIDynamicElement-1588172846908]: 
-        beanData: |
-          '{
-           "ionBean": "MenuButton",
-           "ButtonFormType": "plain:button",
-           "Disabled": "plain:false",
-           "IonColor": "plain",
-           "AutoHide": "plain:true",
-           "MenuId": "plain"
-          }'
+        beanData: '{"ionBean":"MenuButton"}'
         tagName: ion-menu-button
         ↓Class [ngx.components.UIAttribute-1774701000003]: 
           attrName: class
@@ -2874,8 +2847,6 @@ title: Tigo
           '{
            "ionBean": "Image",
            "url": "source:{\"filter\":\"Asset\",\"project\":\"lib_ConvertigoAssistant\",\"input\":\"\",\"model\":{\"data\":[{\"asset\":\"''assets\\\/tigo-head.png''\"}],\"path\":\"\",\"prefix\":\"\",\"suffix\":\"\",\"custom\":\"\",\"useCustom\":false}}",
-           "width": "plain:",
-           "height": "plain:",
            "alt": "plain:Tigo"
           }'
         selfClose: true
@@ -2887,12 +2858,7 @@ title: Tigo
               - ↑classname: com.twinsoft.convertigo.beans.ngx.components.MobileSmartSourceType
               - MobileSmartSourceType: plain:modern-logo-btn
     ↓BarTitle [ngx.components.UIDynamicElement-1491634265317]: 
-      beanData: |
-        '{
-         "ionBean": "BarTitle",
-         "IonColor": "plain",
-         "IonSize": "plain"
-        }'
+      beanData: '{"ionBean":"BarTitle"}'
       tagName: ion-title
       ↓TitleWrap [ngx.components.UIDynamicElement-1774701000013]: 
         beanData: '{"ionBean":"DivTag"}'
@@ -2933,12 +2899,7 @@ title: Tigo
                 - ↑classname: com.twinsoft.convertigo.beans.ngx.components.MobileSmartSourceType
                 - MobileSmartSourceType: script:this.getProjectSubtitle()
     ↓ButtonSet2 [ngx.components.UIDynamicElement-1588170811054]: 
-      beanData: |
-        '{
-         "ionBean": "ButtonSet",
-         "SetPosition": "plain:end",
-         "Collapse": "plain:false"
-        }'
+      beanData: '{"ionBean":"ButtonSet","SetPosition":"plain:end"}'
       tagName: ion-buttons
       ↓Button [ngx.components.UIDynamicElement-1588170817806]: 
         beanData: '{"ionBean":"Button"}'
@@ -2950,17 +2911,7 @@ title: Tigo
               - ↑classname: com.twinsoft.convertigo.beans.ngx.components.MobileSmartSourceType
               - MobileSmartSourceType: 'script:(this.isAgentBridgeMode && this.isAgentBridgeMode()) ? ''modern-header-btn'' : ''modern-header-btn agent-hidden'''
         ↓Icon [ngx.components.UIDynamicElement-1588170831166]: 
-          beanData: |
-            '{
-             "ionBean": "Icon",
-             "IonColor": "plain",
-             "IconName": "source:{\"filter\":\"Icon\",\"project\":\"lib_ConvertigoAssistant\",\"input\":\"\",\"model\":{\"data\":[{\"icon\":\"''home-outline''\"}],\"path\":\"\",\"prefix\":\"\",\"suffix\":\"\",\"custom\":\"\",\"useCustom\":false}}",
-             "IconMdName": "source",
-             "IconIosName": "source",
-             "IonSize": "plain",
-             "IconSlot": "plain",
-             "IconSource": "plain"
-            }'
+          beanData: '{"ionBean":"Icon","IconName":"source:{\"filter\":\"Icon\",\"project\":\"lib_ConvertigoAssistant\",\"input\":\"\",\"model\":{\"data\":[{\"icon\":\"''home-outline''\"}],\"path\":\"\",\"prefix\":\"\",\"suffix\":\"\",\"custom\":\"\",\"useCustom\":false}}"}'
           tagName: ion-icon
         ↓Event [ngx.components.UIControlEvent-1744701589852]: 
           ↓OpenConversationPanel [ngx.components.UICustomAction-1781700500001]: 
@@ -3025,13 +2976,7 @@ title: Tigo
               '{
                "ionBean": "CallSequenceAction",
                "requestable": "plain:lib_ConvertigoAssistant.AgentListConversations",
-               "marker": "plain:",
-               "cachePolicy": "plain",
-               "cacheTtl": "plain:3000",
-               "timeout": "plain",
-               "threshold": "plain",
-               "noLoading": "plain:true",
-               "noAutoLogin": "plain:false"
+               "noLoading": "plain:true"
               }'
             ↓provider [ngx.components.UIControlVariable-1782831332239]: 
               varValue: 
@@ -3113,13 +3058,8 @@ title: Tigo
           beanData: |
             '{
              "ionBean": "Icon",
-             "IonColor": "plain",
              "IconName": "plain:settings-outline",
-             "IconMdName": "source",
-             "IconIosName": "source",
-             "IonSize": "plain",
-             "IconSlot": "plain:icon-only",
-             "IconSource": "plain"
+             "IconSlot": "plain:icon-only"
             }'
           tagName: ion-icon
         ↓Event [ngx.components.UIControlEvent-1785253151161]: 
@@ -3175,17 +3115,7 @@ title: Tigo
                     		resolve();
                     '
         ↓ThemeIcon [ngx.components.UIDynamicElement-1774703000006]: 
-          beanData: |
-            '{
-             "ionBean": "Icon",
-             "IonColor": "plain",
-             "IconName": "plain:moon-outline",
-             "IconMdName": "source",
-             "IconIosName": "source",
-             "IonSize": "plain",
-             "IconSlot": "plain",
-             "IconSource": "plain"
-            }'
+          beanData: '{"ionBean":"Icon","IconName":"plain:moon-outline"}'
           tagName: ion-icon
           ↓IconName [ngx.components.UIAttribute-1774703000007]: 
             attrName: '[name]'
@@ -3248,17 +3178,7 @@ title: Tigo
                             }
                             resolve();'
         ↓Icon [ngx.components.UIDynamicElement-1782917887105]: 
-          beanData: |
-            '{
-             "ionBean": "Icon",
-             "IonColor": "plain",
-             "IconName": "plain:eye-outline",
-             "IconMdName": "source",
-             "IconIosName": "source",
-             "IonSize": "plain",
-             "IconSlot": "plain",
-             "IconSource": "plain"
-            }'
+          beanData: '{"ionBean":"Icon","IconName":"plain:eye-outline"}'
           tagName: ion-icon
           ↓IconName [ngx.components.UIAttribute-1782917887107]: 
             attrName: '[name]'
@@ -3331,12 +3251,7 @@ title: Tigo
                     		resolve();
                     '
         ↓LangEN [ngx.components.UIDynamicElement-1774703000018]: 
-          beanData: |
-            '{
-             "ionBean": "SelectOption",
-             "Disabled": "plain:false",
-             "Value": "plain:en"
-            }'
+          beanData: '{"ionBean":"SelectOption","Value":"plain:en"}'
           tagName: ion-select-option
           ↓Text [ngx.components.UIText-1774703000019]: 
             i18n: true
@@ -3345,12 +3260,7 @@ title: Tigo
                 - ↑classname: com.twinsoft.convertigo.beans.ngx.components.MobileSmartSourceType
                 - MobileSmartSourceType: plain:Lang_English
         ↓LangFR [ngx.components.UIDynamicElement-1774703000020]: 
-          beanData: |
-            '{
-             "ionBean": "SelectOption",
-             "Disabled": "plain:false",
-             "Value": "plain:fr"
-            }'
+          beanData: '{"ionBean":"SelectOption","Value":"plain:fr"}'
           tagName: ion-select-option
           ↓Text [ngx.components.UIText-1774703000021]: 
             i18n: true
@@ -3359,12 +3269,7 @@ title: Tigo
                 - ↑classname: com.twinsoft.convertigo.beans.ngx.components.MobileSmartSourceType
                 - MobileSmartSourceType: plain:Lang_French
         ↓LangIT [ngx.components.UIDynamicElement-1774703000022]: 
-          beanData: |
-            '{
-             "ionBean": "SelectOption",
-             "Disabled": "plain:false",
-             "Value": "plain:it"
-            }'
+          beanData: '{"ionBean":"SelectOption","Value":"plain:it"}'
           tagName: ion-select-option
           ↓Text [ngx.components.UIText-1774703000023]: 
             i18n: true
@@ -3373,12 +3278,7 @@ title: Tigo
                 - ↑classname: com.twinsoft.convertigo.beans.ngx.components.MobileSmartSourceType
                 - MobileSmartSourceType: plain:Lang_Italian
         ↓LangES [ngx.components.UIDynamicElement-1774703000024]: 
-          beanData: |
-            '{
-             "ionBean": "SelectOption",
-             "Disabled": "plain:false",
-             "Value": "plain:es"
-            }'
+          beanData: '{"ionBean":"SelectOption","Value":"plain:es"}'
           tagName: ion-select-option
           ↓Text [ngx.components.UIText-1774703000025]: 
             i18n: true
@@ -3488,23 +3388,7 @@ title: Tigo
               - ↑classname: com.twinsoft.convertigo.beans.ngx.components.MobileSmartSourceType
               - MobileSmartSourceType: plain:agent-desktop-hero
       ↓HowCard [ngx.components.UIDynamicElement-1772100000045]: 
-        beanData: |
-          '{
-           "ionBean": "Card",
-           "Button": "plain:false",
-           "ButtonFormType": "plain:button",
-           "Disabled": "plain:false",
-           "IonColor": "plain",
-           "IonMode": "plain",
-           "LinkUrl": "plain",
-           "LinkDownload": "plain",
-           "LinkTarget": "plain",
-           "LinkRel": "plain",
-           "LinkRouterPath": "plain",
-           "LinkRouterData": "plain",
-           "LinkRouterAnimation": "plain",
-           "LinkRouterDirection": "plain"
-          }'
+        beanData: '{"ionBean":"Card"}'
         tagName: ion-card
         ↓Class [ngx.components.UIAttribute-1772100000046]: 
           attrName: class
@@ -3513,7 +3397,7 @@ title: Tigo
               - ↑classname: com.twinsoft.convertigo.beans.ngx.components.MobileSmartSourceType
               - MobileSmartSourceType: 'script:(this.isAgentBridgeMode && this.isAgentBridgeMode()) ? ''modern-card agent-desktop-how-card'' : ''modern-card'''
         ↓CardContent [ngx.components.UIDynamicElement-1772100000047]: 
-          beanData: '{"ionBean":"CardContent","IonMode":"plain"}'
+          beanData: '{"ionBean":"CardContent"}'
           tagName: ion-card-content
           ↓Title [ngx.components.UIDynamicElement-1772100000048]: 
             beanData: '{"ionBean":"Paragraph"}'
@@ -3658,23 +3542,7 @@ title: Tigo
                   - ↑classname: com.twinsoft.convertigo.beans.ngx.components.MobileSmartSourceType
                   - MobileSmartSourceType: 'plain: '
       ↓StartCard [ngx.components.UIDynamicElement-1772100000093]: 
-        beanData: |
-          '{
-           "ionBean": "Card",
-           "Button": "plain:false",
-           "ButtonFormType": "plain:button",
-           "Disabled": "plain:false",
-           "IonColor": "plain",
-           "IonMode": "plain",
-           "LinkUrl": "plain",
-           "LinkDownload": "plain",
-           "LinkTarget": "plain",
-           "LinkRel": "plain",
-           "LinkRouterPath": "plain",
-           "LinkRouterData": "plain",
-           "LinkRouterAnimation": "plain",
-           "LinkRouterDirection": "plain"
-          }'
+        beanData: '{"ionBean":"Card"}'
         tagName: ion-card
         ↓Class [ngx.components.UIAttribute-1772100000094]: 
           attrName: class
@@ -3683,7 +3551,7 @@ title: Tigo
               - ↑classname: com.twinsoft.convertigo.beans.ngx.components.MobileSmartSourceType
               - MobileSmartSourceType: 'script:(this.local && this.local.ShowAgentConfigPanel === true) ? ''modern-card modern-cta-card agent-start-card agent-config-page'' : ''modern-card modern-cta-card agent-start-card'''
         ↓CardContent [ngx.components.UIDynamicElement-1772100000095]: 
-          beanData: '{"ionBean":"CardContent","IonMode":"plain"}'
+          beanData: '{"ionBean":"CardContent"}'
           tagName: ion-card-content
           ↓Title [ngx.components.UIDynamicElement-1772100000096]: 
             beanData: '{"ionBean":"Paragraph"}'
@@ -3723,17 +3591,7 @@ title: Tigo
                   - ↑classname: com.twinsoft.convertigo.beans.ngx.components.MobileSmartSourceType
                   - MobileSmartSourceType: 'script:(this.isAgentBridgeMode && this.isAgentBridgeMode() && this.local && !this.local.Conversation && this.local.ShowConversationPanel !== true && !(this.shouldShowAgentSettingsPanel && this.shouldShowAgentSettingsPanel()) && !(this.getAgentSkillProfile && this.getAgentSkillProfile() === ''nocode'') && !(this.shouldBlockRemoteStudioAgent && this.shouldBlockRemoteStudioAgent())) ? (''agent-session-strip agent-start-choice agent-project-choice'' + (((this.local && this.local.CurrentStudioProject) || (this.global && this.global.projectName) || '''') ? '''' : '' agent-choice-disabled'') + ((((this.local && this.local.CurrentStudioProject) || (this.global && this.global.projectName) || '''') && this.local.ConversationProjectMode !== ''none'' && (!this.local.ConversationProject || this.local.ConversationProject === ((this.local && this.local.CurrentStudioProject) || (this.global && this.global.projectName)))) ? '' agent-choice-selected'' : '''')) : ''agent-session-strip agent-start-choice agent-project-choice agent-hidden'''
             ↓SessionIcon [ngx.components.UIDynamicElement-1782746869516]: 
-              beanData: |
-                '{
-                 "ionBean": "Icon",
-                 "IonColor": "plain",
-                 "IconName": "plain:folder-open-outline",
-                 "IconMdName": "source",
-                 "IconIosName": "source",
-                 "IonSize": "plain",
-                 "IconSlot": "plain",
-                 "IconSource": "plain"
-                }'
+              beanData: '{"ionBean":"Icon","IconName":"plain:folder-open-outline"}'
               tagName: ion-icon
             ↓SessionCopy [ngx.components.UIDynamicElement-1782746869518]: 
               beanData: '{"ionBean":"DivTag"}'
@@ -3856,17 +3714,7 @@ title: Tigo
                   - ↑classname: com.twinsoft.convertigo.beans.ngx.components.MobileSmartSourceType
                   - MobileSmartSourceType: 'script:(this.isAgentBridgeMode && this.isAgentBridgeMode() && this.local && !this.local.Conversation && this.local.ShowConversationPanel !== true && !(this.shouldShowAgentSettingsPanel && this.shouldShowAgentSettingsPanel()) && (!(this.shouldBlockRemoteStudioAgent && this.shouldBlockRemoteStudioAgent()) || (this.shouldShowAgentActivationChoice && this.shouldShowAgentActivationChoice()))) ? (''agent-session-strip agent-start-choice agent-free-choice'' + ((this.shouldShowAgentActivationChoice && this.shouldShowAgentActivationChoice()) ? '' agent-choice-selected'' : ((this.local.ConversationProjectMode === ''none'' || (!(this.getEffectiveProjectName && this.getEffectiveProjectName()) && !this.local.ConversationProject)) ? '' agent-choice-selected'' : ''''))) : ''agent-session-strip agent-start-choice agent-free-choice agent-hidden'''
             ↓SessionIcon [ngx.components.UIDynamicElement-1782746911794]: 
-              beanData: |
-                '{
-                 "ionBean": "Icon",
-                 "IonColor": "plain",
-                 "IconName": "plain:cloud-download-outline",
-                 "IconMdName": "source",
-                 "IconIosName": "source",
-                 "IonSize": "plain",
-                 "IconSlot": "plain",
-                 "IconSource": "plain"
-                }'
+              beanData: '{"ionBean":"Icon","IconName":"plain:cloud-download-outline"}'
               tagName: ion-icon
               ↓IconName [ngx.components.UIAttribute-1783011654749]: 
                 attrName: '[name]'
@@ -3989,17 +3837,7 @@ title: Tigo
                   - ↑classname: com.twinsoft.convertigo.beans.ngx.components.MobileSmartSourceType
                   - MobileSmartSourceType: 'script:(this.isAgentBridgeMode && this.isAgentBridgeMode() && this.local && !this.local.Conversation && this.local.ShowConversationPanel !== true && !(this.shouldShowAgentSettingsPanel && this.shouldShowAgentSettingsPanel()) && ((this.shouldBlockRemoteStudioAgent && this.shouldBlockRemoteStudioAgent()) || (this.local.AgentConversationsLoading === true || (this.local.AgentConversations && this.local.AgentConversations.length > 0)))) ? (''agent-session-strip agent-history-choice'' + ((this.shouldBlockRemoteStudioAgent && this.shouldBlockRemoteStudioAgent()) ? '' agent-menu-choice'' : (this.local.AgentConversationsLoading === true ? '' agent-choice-disabled agent-history-loading'' : ''''))) : ''agent-session-strip agent-history-choice agent-hidden'''
             ↓SessionIcon [ngx.components.UIDynamicElement-1782746946887]: 
-              beanData: |
-                '{
-                 "ionBean": "Icon",
-                 "IonColor": "plain",
-                 "IconName": "plain:time-outline",
-                 "IconMdName": "source",
-                 "IconIosName": "source",
-                 "IonSize": "plain",
-                 "IconSlot": "plain",
-                 "IconSource": "plain"
-                }'
+              beanData: '{"ionBean":"Icon","IconName":"plain:time-outline"}'
               tagName: ion-icon
               ↓IconName [ngx.components.UIAttribute-1783011658965]: 
                 attrName: '[name]'
@@ -4045,17 +3883,7 @@ title: Tigo
                       - ↑classname: com.twinsoft.convertigo.beans.ngx.components.MobileSmartSourceType
                       - MobileSmartSourceType: 'script:(this.shouldBlockRemoteStudioAgent && this.shouldBlockRemoteStudioAgent()) ? ''Accédez à How-To, composants et Figma.'' : ((this.local && this.local.AgentConversationsLoading === true) ? ''Lecture de l’historique local en cours.'' : ''Cliquez pour choisir une conversation existante.'')'
             ↓Chevron [ngx.components.UIDynamicElement-1782746954600]: 
-              beanData: |
-                '{
-                 "ionBean": "Icon",
-                 "IonColor": "plain",
-                 "IconName": "plain:chevron-down-outline",
-                 "IconMdName": "source",
-                 "IconIosName": "source",
-                 "IonSize": "plain",
-                 "IconSlot": "plain",
-                 "IconSource": "plain"
-                }'
+              beanData: '{"ionBean":"Icon","IconName":"plain:chevron-down-outline"}'
               tagName: ion-icon
               ↓Class [ngx.components.UIAttribute-1782747017406]: 
                 attrName: class
@@ -4147,13 +3975,8 @@ title: Tigo
                   beanData: |
                     '{
                      "ionBean": "Icon",
-                     "IonColor": "plain",
                      "IconName": "plain:close-outline",
-                     "IconMdName": "source",
-                     "IconIosName": "source",
-                     "IonSize": "plain",
-                     "IconSlot": "plain:icon-only",
-                     "IconSource": "plain"
+                     "IconSlot": "plain:icon-only"
                     }'
                   tagName: ion-icon
                 ↓Class [ngx.components.UIAttribute-1785253485568]: 
@@ -4354,13 +4177,8 @@ title: Tigo
                         beanData: |
                           '{
                            "ionBean": "Icon",
-                           "IonColor": "plain",
                            "IconName": "plain:sparkles-outline",
-                           "IconMdName": "source",
-                           "IconIosName": "source",
-                           "IonSize": "plain",
-                           "IconSlot": "plain:start",
-                           "IconSource": "plain"
+                           "IconSlot": "plain:start"
                           }'
                         tagName: ion-icon
                         ↓Class [ngx.components.UIAttribute-1787737633944]: 
@@ -4410,13 +4228,8 @@ title: Tigo
                         beanData: |
                           '{
                            "ionBean": "Icon",
-                           "IonColor": "plain",
                            "IconName": "plain:checkmark-circle",
-                           "IconMdName": "source",
-                           "IconIosName": "source",
-                           "IonSize": "plain",
-                           "IconSlot": "plain:end",
-                           "IconSource": "plain"
+                           "IconSlot": "plain:end"
                           }'
                         tagName: ion-icon
                         ↓Class [ngx.components.UIAttribute-1787737642876]: 
@@ -4551,13 +4364,8 @@ title: Tigo
                         beanData: |
                           '{
                            "ionBean": "Icon",
-                           "IonColor": "plain",
                            "IconName": "plain:code-slash-outline",
-                           "IconMdName": "source",
-                           "IconIosName": "source",
-                           "IonSize": "plain",
-                           "IconSlot": "plain:start",
-                           "IconSource": "plain"
+                           "IconSlot": "plain:start"
                           }'
                         tagName: ion-icon
                         ↓Class [ngx.components.UIAttribute-1787737647336]: 
@@ -4607,13 +4415,8 @@ title: Tigo
                         beanData: |
                           '{
                            "ionBean": "Icon",
-                           "IonColor": "plain",
                            "IconName": "plain:checkmark-circle",
-                           "IconMdName": "source",
-                           "IconIosName": "source",
-                           "IonSize": "plain",
-                           "IconSlot": "plain:end",
-                           "IconSource": "plain"
+                           "IconSlot": "plain:end"
                           }'
                         tagName: ion-icon
                         ↓Class [ngx.components.UIAttribute-1787737656268]: 
@@ -4989,13 +4792,8 @@ title: Tigo
                       beanData: |
                         '{
                          "ionBean": "Icon",
-                         "IonColor": "plain",
                          "IconName": "plain:cloud-download-outline",
-                         "IconMdName": "source",
-                         "IconIosName": "source",
-                         "IonSize": "plain",
-                         "IconSlot": "plain:start",
-                         "IconSource": "plain"
+                         "IconSlot": "plain:start"
                         }'
                       tagName: ion-icon
                     ↓Text [ngx.components.UIText-1787742888368]: 
@@ -5082,13 +4880,8 @@ title: Tigo
                       beanData: |
                         '{
                          "ionBean": "Icon",
-                         "IonColor": "plain",
                          "IconName": "plain:download-outline",
-                         "IconMdName": "source",
-                         "IconIosName": "source",
-                         "IonSize": "plain",
-                         "IconSlot": "plain:start",
-                         "IconSource": "plain"
+                         "IconSlot": "plain:start"
                         }'
                       tagName: ion-icon
                     ↓Text [ngx.components.UIText-1785253202553]: 
@@ -5391,13 +5184,8 @@ title: Tigo
                       beanData: |
                         '{
                          "ionBean": "Icon",
-                         "IonColor": "plain",
                          "IconName": "plain:arrow-forward-outline",
-                         "IconMdName": "source",
-                         "IconIosName": "source",
-                         "IonSize": "plain",
-                         "IconSlot": "plain:end",
-                         "IconSource": "plain"
+                         "IconSlot": "plain:end"
                         }'
                       tagName: ion-icon
                     ↓Event [ngx.components.UIControlEvent-1785315895974]: 
@@ -5498,13 +5286,8 @@ title: Tigo
                   beanData: |
                     '{
                      "ionBean": "Icon",
-                     "IonColor": "plain",
                      "IconName": "plain:add-circle-outline",
-                     "IconMdName": "source",
-                     "IconIosName": "source",
-                     "IonSize": "plain",
-                     "IconSlot": "plain:start",
-                     "IconSource": "plain"
+                     "IconSlot": "plain:start"
                     }'
                   tagName: ion-icon
                   ↓IconName [ngx.components.UIAttribute-1783011667397]: 
@@ -5585,13 +5368,8 @@ title: Tigo
                   beanData: |
                     '{
                      "ionBean": "Icon",
-                     "IonColor": "plain",
                      "IconName": "plain:construct-outline",
-                     "IconMdName": "source",
-                     "IconIosName": "source",
-                     "IonSize": "plain",
-                     "IconSlot": "plain:start",
-                     "IconSource": "plain"
+                     "IconSlot": "plain:start"
                     }'
                   tagName: ion-icon
                 ↓Text [ngx.components.UIText-1781811000104]: 
@@ -5946,13 +5724,8 @@ title: Tigo
                         beanData: |
                           '{
                            "ionBean": "Icon",
-                           "IonColor": "plain",
                            "IconName": "plain:return-down-back-outline",
-                           "IconMdName": "source",
-                           "IconIosName": "source",
-                           "IonSize": "plain",
-                           "IconSlot": "plain:icon-only",
-                           "IconSource": "plain"
+                           "IconSlot": "plain:icon-only"
                           }'
                         tagName: ion-icon
                       ↓Text [ngx.components.UIText-1781676432698]: 
@@ -5987,13 +5760,7 @@ title: Tigo
                             '{
                              "ionBean": "CallSequenceAction",
                              "requestable": "plain:lib_ConvertigoAssistant.AgentResumeConversation",
-                             "marker": "plain:",
-                             "cachePolicy": "plain",
-                             "cacheTtl": "plain:3000",
-                             "timeout": "plain",
-                             "threshold": "plain",
-                             "noLoading": "plain:true",
-                             "noAutoLogin": "plain:false"
+                             "noLoading": "plain:true"
                             }'
                           ↓threadid [ngx.components.UIControlVariable-1781608122133]: 
                             varValue: 
@@ -6188,24 +5955,13 @@ title: Tigo
                                   - ↑classname: com.twinsoft.convertigo.beans.ngx.components.MobileSmartSourceType
                                   - MobileSmartSourceType: source:{"filter":"Sequence","project":"lib_ConvertigoAssistant","input":"","model":{"data":[{"sequence":"lib_ConvertigoAssistant.AgentResumeConversation","marker":""}],"path":"?.result.state","prefix":"","suffix":"","custom":"","useCustom":false}}
                           ↓PollActiveConversation [ngx.components.UIDynamicAction-1781621341114]: 
-                            beanData: |
-                              '{
-                               "ionBean": "IfAction",
-                               "condition": "source:{\"filter\":\"Sequence\",\"project\":\"lib_ConvertigoAssistant\",\"input\":\"\",\"model\":{\"data\":[{\"sequence\":\"lib_ConvertigoAssistant.AgentResumeConversation\",\"marker\":\"\"}],\"path\":\"?.result.state.status\",\"prefix\":\"[''starting'',''queued'',''running'',''in_progress''].indexOf(\",\"suffix\":\") != -1\",\"custom\":\"\",\"useCustom\":false}}",
-                               "negate": "plain:false"
-                              }'
+                            beanData: '{"ionBean":"IfAction","condition":"source:{\"filter\":\"Sequence\",\"project\":\"lib_ConvertigoAssistant\",\"input\":\"\",\"model\":{\"data\":[{\"sequence\":\"lib_ConvertigoAssistant.AgentResumeConversation\",\"marker\":\"\"}],\"path\":\"?.result.state.status\",\"prefix\":\"[''starting'',''queued'',''running'',''in_progress''].indexOf(\",\"suffix\":\") != -1\",\"custom\":\"\",\"useCustom\":false}}"}'
                             ↓CallSequence [ngx.components.UIDynamicAction-1781621341116]: 
                               beanData: |
                                 '{
                                  "ionBean": "CallSequenceAction",
                                  "requestable": "plain:lib_ConvertigoAssistant.AgentReadResponseRouter",
-                                 "marker": "plain:",
-                                 "cachePolicy": "plain",
-                                 "cacheTtl": "plain:3000",
-                                 "timeout": "plain",
-                                 "threshold": "plain",
-                                 "noLoading": "plain:true",
-                                 "noAutoLogin": "plain:false"
+                                 "noLoading": "plain:true"
                                 }'
                               ↓threadid [ngx.components.UIControlVariable-1781621341118]: 
                                 varValue: 
@@ -6223,13 +5979,7 @@ title: Tigo
                                     - ↑classname: com.twinsoft.convertigo.beans.ngx.components.MobileSmartSourceType
                                     - MobileSmartSourceType: 'script:this.getAgentProvider ? this.getAgentProvider() : ''vibe'''
                               ↓PublishEvent [ngx.components.UIDynamicAction-1781621341122]: 
-                                beanData: |
-                                  '{
-                                   "ionBean": "PublishEventAction",
-                                   "topic": "plain:AssistantResponse",
-                                   "data": "script:{}",
-                                   "async": "plain:true"
-                                  }'
+                                beanData: '{"ionBean":"PublishEventAction","topic":"plain:AssistantResponse"}'
                               ↓targetProject [ngx.components.UIControlVariable-1781689577838]: 
                                 varValue: 
                                   - xmlizable: 
@@ -6318,11 +6068,7 @@ title: Tigo
                            "ionBean": "Icon",
                            "IonColor": "plain:danger",
                            "IconName": "plain:close-outline",
-                           "IconMdName": "source",
-                           "IconIosName": "source",
-                           "IonSize": "plain",
-                           "IconSlot": "plain:icon-only",
-                           "IconSource": "plain"
+                           "IconSlot": "plain:icon-only"
                           }'
                         tagName: ion-icon
                       ↓Event [ngx.components.UIControlEvent-1781608122151]: 
@@ -6331,13 +6077,7 @@ title: Tigo
                             '{
                              "ionBean": "CallSequenceAction",
                              "requestable": "plain:lib_ConvertigoAssistant.AgentDeleteConversation",
-                             "marker": "plain:",
-                             "cachePolicy": "plain",
-                             "cacheTtl": "plain:3000",
-                             "timeout": "plain",
-                             "threshold": "plain",
-                             "noLoading": "plain:true",
-                             "noAutoLogin": "plain:false"
+                             "noLoading": "plain:true"
                             }'
                           ↓threadid [ngx.components.UIControlVariable-1781608122155]: 
                             varValue: 
@@ -6400,13 +6140,8 @@ title: Tigo
                         beanData: |
                           '{
                            "ionBean": "Icon",
-                           "IonColor": "plain",
                            "IconName": "plain:create-outline",
-                           "IconMdName": "source",
-                           "IconIosName": "source",
-                           "IonSize": "plain",
-                           "IconSlot": "plain:icon-only",
-                           "IconSource": "plain"
+                           "IconSlot": "plain:icon-only"
                           }'
                         tagName: ion-icon
                       ↓Event [ngx.components.UIControlEvent-1782745322286]: 
@@ -6771,13 +6506,8 @@ title: Tigo
                             beanData: |
                               '{
                                "ionBean": "Icon",
-                               "IonColor": "plain",
                                "IconName": "plain:terminal-outline",
-                               "IconMdName": "source",
-                               "IconIosName": "source",
-                               "IonSize": "plain:small",
-                               "IconSlot": "plain",
-                               "IconSource": "plain"
+                               "IonSize": "plain:small"
                               }'
                             tagName: ion-icon
                           ↓Text [ngx.components.UIDynamicElement-1782245569906]: 
@@ -6922,13 +6652,8 @@ title: Tigo
                           beanData: |
                             '{
                              "ionBean": "Icon",
-                             "IonColor": "plain",
                              "IconName": "plain:terminal-outline",
-                             "IconMdName": "source",
-                             "IconIosName": "source",
-                             "IonSize": "plain:small",
-                             "IconSlot": "plain",
-                             "IconSource": "plain"
+                             "IonSize": "plain:small"
                             }'
                           tagName: ion-icon
                         ↓Text [ngx.components.UIDynamicElement-1782246692556]: 
@@ -7018,14 +6743,7 @@ title: Tigo
                 - ↑classname: com.twinsoft.convertigo.beans.ngx.components.MobileSmartSourceType
                 - MobileSmartSourceType: source:{"filter":"Local","project":"lib_ConvertigoAssistant","input":"","model":{"data":[{"localObject":"local"}],"path":"?.spinner","prefix":"","suffix":"","custom":"","useCustom":false}}
             ↓Spinner [ngx.components.UIDynamicElement-1773100000018]: 
-              beanData: |
-                '{
-                 "ionBean": "Spinner",
-                 "IonColor": "plain",
-                 "Duration": "plain",
-                 "Name": "plain:lines",
-                 "Paused": "plain:false"
-                }'
+              beanData: '{"ionBean":"Spinner","Name":"plain:lines"}'
               tagName: ion-spinner
           ↓Hidden [ngx.components.UIAttribute-1782124487981]: 
             attrName: '[hidden]'
@@ -7080,11 +6798,8 @@ title: Tigo
            "ionBean": "Icon",
            "IonColor": "plain:dark",
            "IconName": "plain:arrow-up-outline",
-           "IconMdName": "source",
-           "IconIosName": "source",
            "IonSize": "plain:small",
-           "IconSlot": "plain:icon-only",
-           "IconSource": "plain"
+           "IconSlot": "plain:icon-only"
           }'
         tagName: ion-icon
   ↓IfScrollBottomButton [ngx.components.UIControlDirective-1773900000010]: 
@@ -7134,11 +6849,8 @@ title: Tigo
            "ionBean": "Icon",
            "IonColor": "plain:dark",
            "IconName": "plain:arrow-down-outline",
-           "IconMdName": "source",
-           "IconIosName": "source",
            "IonSize": "plain:small",
-           "IconSlot": "plain:icon-only",
-           "IconSource": "plain"
+           "IconSlot": "plain:icon-only"
           }'
         tagName: ion-icon
 ↓PageEvent [ngx.components.UIPageEvent-1744269061199]: 
@@ -7407,13 +7119,7 @@ title: Tigo
           '{
            "ionBean": "CallSequenceAction",
            "requestable": "plain:lib_ConvertigoAssistant.AgentCreateConversationRouter",
-           "marker": "plain:",
-           "cachePolicy": "plain",
-           "cacheTtl": "plain:3000",
-           "timeout": "plain",
-           "threshold": "plain",
-           "noLoading": "plain:true",
-           "noAutoLogin": "plain:false"
+           "noLoading": "plain:true"
           }'
         ↓SetLocal [ngx.components.UIDynamicAction-1744302907957]: 
           beanData: |
@@ -7446,12 +7152,7 @@ title: Tigo
               - ↑classname: com.twinsoft.convertigo.beans.ngx.components.MobileSmartSourceType
               - MobileSmartSourceType: 'script:(this.getConfiguredAgentProvider && this.getConfiguredAgentProvider().length && this.getAgentModel) ? this.getAgentModel() : '''''
         ↓If [ngx.components.UIDynamicAction-1749567852407]: 
-          beanData: |
-            '{
-             "ionBean": "IfAction",
-             "condition": "source:{\"filter\":\"Sequence\",\"project\":\"lib_ConvertigoAssistant\",\"input\":\"\",\"model\":{\"data\":[{\"sequence\":\"lib_ConvertigoAssistant.AgentCreateConversationRouter\",\"marker\":\"\"}],\"path\":\"?.result.AIData\",\"prefix\":\"\",\"suffix\":\"\",\"custom\":\"\",\"useCustom\":false}}",
-             "negate": "plain:false"
-            }'
+          beanData: '{"ionBean":"IfAction","condition":"source:{\"filter\":\"Sequence\",\"project\":\"lib_ConvertigoAssistant\",\"input\":\"\",\"model\":{\"data\":[{\"sequence\":\"lib_ConvertigoAssistant.AgentCreateConversationRouter\",\"marker\":\"\"}],\"path\":\"?.result.AIData\",\"prefix\":\"\",\"suffix\":\"\",\"custom\":\"\",\"useCustom\":false}}"}'
           ↓AddHistoryMessages [ngx.components.UICustomAction-1749567905830]: 
             actionValue: 
               - xmlizable: 
@@ -7604,24 +7305,13 @@ title: Tigo
                   - ↑classname: com.twinsoft.convertigo.beans.ngx.components.MobileSmartSourceType
                   - MobileSmartSourceType: source:{"filter":"Sequence","project":"lib_ConvertigoAssistant","input":"","model":{"data":[{"sequence":"lib_ConvertigoAssistant.AgentCreateConversationRouter","marker":""}],"path":"?.result.state","prefix":"","suffix":"","custom":"","useCustom":false}}
             ↓PollActiveRunOnEnter [ngx.components.UIDynamicAction-1781622093065]: 
-              beanData: |
-                '{
-                 "ionBean": "IfAction",
-                 "condition": "script:this.local && this.local.IsProcessing === true && !!this.local.RunID",
-                 "negate": "plain:false"
-                }'
+              beanData: '{"ionBean":"IfAction","condition":"script:this.local && this.local.IsProcessing === true && !!this.local.RunID"}'
               ↓CallSequence [ngx.components.UIDynamicAction-1781622094571]: 
                 beanData: |
                   '{
                    "ionBean": "CallSequenceAction",
                    "requestable": "plain:lib_ConvertigoAssistant.AgentReadResponseRouter",
-                   "marker": "plain:",
-                   "cachePolicy": "plain",
-                   "cacheTtl": "plain:3000",
-                   "timeout": "plain",
-                   "threshold": "plain",
-                   "noLoading": "plain:true",
-                   "noAutoLogin": "plain:false"
+                   "noLoading": "plain:true"
                   }'
                 ↓threadid [ngx.components.UIControlVariable-1781622094573]: 
                   varValue: 
@@ -7639,13 +7329,7 @@ title: Tigo
                       - ↑classname: com.twinsoft.convertigo.beans.ngx.components.MobileSmartSourceType
                       - MobileSmartSourceType: 'script:this.getAgentProvider ? this.getAgentProvider() : ''vibe'''
                 ↓PublishEvent [ngx.components.UIDynamicAction-1781622094577]: 
-                  beanData: |
-                    '{
-                     "ionBean": "PublishEventAction",
-                     "topic": "plain:AssistantResponse",
-                     "data": "script:{}",
-                     "async": "plain:true"
-                    }'
+                  beanData: '{"ionBean":"PublishEventAction","topic":"plain:AssistantResponse"}'
                 ↓targetProject [ngx.components.UIControlVariable-1781689586166]: 
                   varValue: 
                     - xmlizable: 
@@ -8816,24 +8500,13 @@ title: Tigo
           - ↑classname: com.twinsoft.convertigo.beans.ngx.components.MobileSmartSourceType
           - MobileSmartSourceType: source:{"filter":"Sequence","project":"lib_ConvertigoAssistant","input":"","model":{"data":[{"sequence":"lib_ConvertigoAssistant.AgentReadResponseRouter","marker":""}],"path":"?.result.AIData","prefix":"","suffix":"","custom":"","useCustom":false}}
     ↓IfElse [ngx.components.UIDynamicIf-1744357030892]: 
-      beanData: |
-        '{
-         "ionBean": "IfElseAction",
-         "condition": "source:{\"filter\":\"Sequence\",\"project\":\"lib_ConvertigoAssistant\",\"input\":\"\",\"model\":{\"data\":[{\"sequence\":\"lib_ConvertigoAssistant.AgentReadResponseRouter\",\"marker\":\"\"}],\"path\":\"?.result.status\",\"prefix\":\"[''completed'',''failed'',''cancelled'',''expired''].indexOf(\",\"suffix\":\") == -1\",\"custom\":\"\",\"useCustom\":false}}",
-         "negate": "plain:false"
-        }'
+      beanData: '{"ionBean":"IfElseAction","condition":"source:{\"filter\":\"Sequence\",\"project\":\"lib_ConvertigoAssistant\",\"input\":\"\",\"model\":{\"data\":[{\"sequence\":\"lib_ConvertigoAssistant.AgentReadResponseRouter\",\"marker\":\"\"}],\"path\":\"?.result.status\",\"prefix\":\"[''completed'',''failed'',''cancelled'',''expired''].indexOf(\",\"suffix\":\") == -1\",\"custom\":\"\",\"useCustom\":false}}"}'
       ↓CallSequence [ngx.components.UIDynamicAction-1744367857710]: 
         beanData: |
           '{
            "ionBean": "CallSequenceAction",
            "requestable": "plain:lib_ConvertigoAssistant.AgentReadResponseRouter",
-           "marker": "plain:",
-           "cachePolicy": "plain",
-           "cacheTtl": "plain:3000",
-           "timeout": "plain",
-           "threshold": "plain",
-           "noLoading": "plain:true",
-           "noAutoLogin": "plain:false"
+           "noLoading": "plain:true"
           }'
         ↓threadid [ngx.components.UIControlVariable-1744367857713]: 
           varValue: 
@@ -8841,13 +8514,7 @@ title: Tigo
               - ↑classname: com.twinsoft.convertigo.beans.ngx.components.MobileSmartSourceType
               - MobileSmartSourceType: source:{"filter":"Local","project":"lib_ConvertigoAssistant","input":"","model":{"data":[{"localObject":"local"}],"path":"?.Conversation","prefix":"","suffix":"","custom":"","useCustom":false}}
         ↓PublishEvent [ngx.components.UIDynamicAction-1744367857716]: 
-          beanData: |
-            '{
-             "ionBean": "PublishEventAction",
-             "topic": "plain:AssistantResponse",
-             "data": "script:{}",
-             "async": "plain:true"
-            }'
+          beanData: '{"ionBean":"PublishEventAction","topic":"plain:AssistantResponse"}'
         ↓runid [ngx.components.UIControlVariable-1744389800542]: 
           varValue: 
             - xmlizable: 
@@ -8914,12 +8581,7 @@ title: Tigo
              "level": "plain:warn"
             }'
         ↓If1 [ngx.components.UIDynamicAction-1747229858672]: 
-          beanData: |
-            '{
-             "ionBean": "IfAction",
-             "condition": "source:{\"filter\":\"Sequence\",\"project\":\"lib_ConvertigoAssistant\",\"input\":\"\",\"model\":{\"data\":[{\"sequence\":\"lib_ConvertigoAssistant.AgentReadResponseRouter\",\"marker\":\"\"}],\"path\":\"?.result.AIData\",\"prefix\":\"\",\"suffix\":\"\",\"custom\":\"\",\"useCustom\":false}}",
-             "negate": "plain:false"
-            }'
+          beanData: '{"ionBean":"IfAction","condition":"source:{\"filter\":\"Sequence\",\"project\":\"lib_ConvertigoAssistant\",\"input\":\"\",\"model\":{\"data\":[{\"sequence\":\"lib_ConvertigoAssistant.AgentReadResponseRouter\",\"marker\":\"\"}],\"path\":\"?.result.AIData\",\"prefix\":\"\",\"suffix\":\"\",\"custom\":\"\",\"useCustom\":false}}"}'
           ↓AddAssistantMessage [ngx.components.UICustomAction-1747229858675]: 
             actionValue: 
               - xmlizable: 
@@ -9001,18 +8663,7 @@ title: Tigo
       attrName: (RunQuestion)
       eventName: RunQuestion
       ↓CallSequence [ngx.components.UIDynamicAction-1751354620842]: 
-        beanData: |
-          '{
-           "ionBean": "CallSequenceAction",
-           "requestable": "plain:lib_ConvertigoAssistant.UploadFiles",
-           "marker": "plain:",
-           "cachePolicy": "plain",
-           "cacheTtl": "plain:3000",
-           "timeout": "plain",
-           "threshold": "plain",
-           "noLoading": "plain:false",
-           "noAutoLogin": "plain:false"
-          }'
+        beanData: '{"ionBean":"CallSequenceAction","requestable":"plain:lib_ConvertigoAssistant.UploadFiles"}'
         ↓files [ngx.components.UIControlVariable-1751354620845]: 
           varValue: 
             - xmlizable: 
@@ -9034,12 +8685,7 @@ title: Tigo
             beanData: '{"ionBean":"IterateAction","items":"source:{\"filter\":\"Sequence\",\"project\":\"lib_ConvertigoAssistant\",\"input\":\"\",\"model\":{\"data\":[{\"sequence\":\"lib_ConvertigoAssistant.UploadFiles\",\"marker\":\"\"}],\"path\":\"?.file\",\"prefix\":\"\",\"suffix\":\"\",\"custom\":\"\",\"useCustom\":false}}"}'
             ↓Loop_Handler [ngx.components.UIActionLoopEvent-1751354620854]: 
               ↓If [ngx.components.UIDynamicAction-1751354620857]: 
-                beanData: |
-                  '{
-                   "ionBean": "IfAction",
-                   "condition": "script:item.filename",
-                   "negate": "plain:false"
-                  }'
+                beanData: '{"ionBean":"IfAction","condition":"script:item.filename"}'
                 ↓PushAIFile [ngx.components.UICustomAction-1751354620860]: 
                   actionValue: 
                     - xmlizable: 
@@ -9140,12 +8786,7 @@ title: Tigo
                         - ↑classname: com.twinsoft.convertigo.beans.ngx.components.MobileSmartSourceType
                         - MobileSmartSourceType: script:item
               ↓If1 [ngx.components.UIDynamicAction-1751634630354]: 
-                beanData: |
-                  '{
-                   "ionBean": "IfAction",
-                   "condition": "script:item.error",
-                   "negate": "plain:false"
-                  }'
+                beanData: '{"ionBean":"IfAction","condition":"script:item.error"}'
                 ↓AddAssistantMessage [ngx.components.UICustomAction-1751634630369]: 
                   actionValue: 
                     - xmlizable: 
@@ -9166,12 +8807,7 @@ title: Tigo
                         - ↑classname: com.twinsoft.convertigo.beans.ngx.components.MobileSmartSourceType
                         - MobileSmartSourceType: script:item
             ↓If [ngx.components.UIDynamicAction-1751354620878]: 
-              beanData: |
-                '{
-                 "ionBean": "IfAction",
-                 "condition": "script:parent.out == ''done''",
-                 "negate": "plain:false"
-                }'
+              beanData: '{"ionBean":"IfAction","condition":"script:parent.out == ''done''"}'
               ↓ConsoleLog [ngx.components.UICustomAction-1751354620881]: 
                 actionValue: 
                   - xmlizable: 
@@ -9312,13 +8948,7 @@ title: Tigo
                     '{
                      "ionBean": "CallSequenceAction",
                      "requestable": "plain:lib_ConvertigoAssistant.AgentSendMessageRouter",
-                     "marker": "plain:",
-                     "cachePolicy": "plain",
-                     "cacheTtl": "plain:3000",
-                     "timeout": "plain",
-                     "threshold": "plain",
-                     "noLoading": "plain:true",
-                     "noAutoLogin": "plain:false"
+                     "noLoading": "plain:true"
                     }'
                   ↓Question [ngx.components.UIControlVariable-1751354620899]: 
                     varValue: 
@@ -9353,12 +8983,7 @@ title: Tigo
                             		resolve();
                             '
                   ↓If [ngx.components.UIDynamicAction-1751354620911]: 
-                    beanData: |
-                      '{
-                       "ionBean": "IfAction",
-                       "condition": "source:{\"filter\":\"Sequence\",\"project\":\"lib_ConvertigoAssistant\",\"input\":\"\",\"model\":{\"data\":[{\"sequence\":\"lib_ConvertigoAssistant.AgentSendMessageRouter\",\"marker\":\"\"}],\"path\":\"?.result.error\",\"prefix\":\"\",\"suffix\":\"\",\"custom\":\"\",\"useCustom\":false}}",
-                       "negate": "plain:false"
-                      }'
+                    beanData: '{"ionBean":"IfAction","condition":"source:{\"filter\":\"Sequence\",\"project\":\"lib_ConvertigoAssistant\",\"input\":\"\",\"model\":{\"data\":[{\"sequence\":\"lib_ConvertigoAssistant.AgentSendMessageRouter\",\"marker\":\"\"}],\"path\":\"?.result.error\",\"prefix\":\"\",\"suffix\":\"\",\"custom\":\"\",\"useCustom\":false}}"}'
                     ↓AddAssistantMessage [ngx.components.UICustomAction-1751354620914]: 
                       actionValue: 
                         - xmlizable: 
@@ -9413,13 +9038,7 @@ title: Tigo
                           '{
                            "ionBean": "CallSequenceAction",
                            "requestable": "plain:lib_ConvertigoAssistant.AgentReadResponseRouter",
-                           "marker": "plain:",
-                           "cachePolicy": "plain",
-                           "cacheTtl": "plain:3000",
-                           "timeout": "plain",
-                           "threshold": "plain",
-                           "noLoading": "plain:true",
-                           "noAutoLogin": "plain:false"
+                           "noLoading": "plain:true"
                           }'
                         ↓threadid [ngx.components.UIControlVariable-1751354620926]: 
                           varValue: 
@@ -9432,13 +9051,7 @@ title: Tigo
                               - ↑classname: com.twinsoft.convertigo.beans.ngx.components.MobileSmartSourceType
                               - MobileSmartSourceType: 'script:(this.local && this.local.AgentProvider) ? this.local.AgentProvider : (this.getConfiguredAgentProvider ? this.getConfiguredAgentProvider() : '''')'
                         ↓PublishEvent [ngx.components.UIDynamicAction-1751354620929]: 
-                          beanData: |
-                            '{
-                             "ionBean": "PublishEventAction",
-                             "topic": "plain:AssistantResponse",
-                             "data": "script:{}",
-                             "async": "plain:true"
-                            }'
+                          beanData: '{"ionBean":"PublishEventAction","topic":"plain:AssistantResponse"}'
                         ↓runid [ngx.components.UIControlVariable-1751354620932]: 
                           varValue: 
                             - xmlizable: 
@@ -9647,13 +9260,7 @@ title: Tigo
           '{
            "ionBean": "CallSequenceAction",
            "requestable": "plain:lib_ConvertigoAssistant.AgentCloseConversation",
-           "marker": "plain:",
-           "cachePolicy": "plain",
-           "cacheTtl": "plain:3000",
-           "timeout": "plain",
-           "threshold": "plain",
-           "noLoading": "plain:true",
-           "noAutoLogin": "plain:false"
+           "noLoading": "plain:true"
           }'
         ↓threadid [ngx.components.UIControlVariable-1781872839640]: 
           varValue: 
@@ -9873,24 +9480,13 @@ title: Tigo
                     page.tick();
                     resolve();'
     ↓SwitchProjectIf [ngx.components.UIDynamicAction-1782139100462]: 
-      beanData: |
-        '{
-         "ionBean": "IfAction",
-         "condition": "script:false",
-         "negate": "plain:false"
-        }'
+      beanData: '{"ionBean":"IfAction","condition":"script:false"}'
       ↓ReloadProjectConversation [ngx.components.UIDynamicAction-1782139101968]: 
         beanData: |
           '{
            "ionBean": "CallSequenceAction",
            "requestable": "plain:lib_ConvertigoAssistant.AgentCreateConversation",
-           "marker": "plain:",
-           "cachePolicy": "plain",
-           "cacheTtl": "plain:3000",
-           "timeout": "plain",
-           "threshold": "plain",
-           "noLoading": "plain:true",
-           "noAutoLogin": "plain:false"
+           "noLoading": "plain:true"
           }'
         ↓threadid [ngx.components.UIControlVariable-1782139101970]: 
           varValue: 
@@ -10022,24 +9618,13 @@ title: Tigo
                           if (page.local.Messages.length && page.scrollChatBottom) { page.scrollChatBottom(0); }
                           resolve();'
           ↓PollActiveRunOnSwitch [ngx.components.UIDynamicAction-1782139533591]: 
-            beanData: |
-              '{
-               "ionBean": "IfAction",
-               "condition": "script:this.local && this.local.ProjectConversationNeedsPolling === true && this.local.IsProcessing === true && !!this.local.RunID && !!this.local.Conversation",
-               "negate": "plain:false"
-              }'
+            beanData: '{"ionBean":"IfAction","condition":"script:this.local && this.local.ProjectConversationNeedsPolling === true && this.local.IsProcessing === true && !!this.local.RunID && !!this.local.Conversation"}'
             ↓ReadActiveRun [ngx.components.UIDynamicAction-1782139535097]: 
               beanData: |
                 '{
                  "ionBean": "CallSequenceAction",
                  "requestable": "plain:lib_ConvertigoAssistant.AgentReadResponseRouter",
-                 "marker": "plain:",
-                 "cachePolicy": "plain",
-                 "cacheTtl": "plain:3000",
-                 "timeout": "plain",
-                 "threshold": "plain",
-                 "noLoading": "plain:true",
-                 "noAutoLogin": "plain:false"
+                 "noLoading": "plain:true"
                 }'
               ↓threadid [ngx.components.UIControlVariable-1782139535099]: 
                 varValue: 
@@ -10062,13 +9647,7 @@ title: Tigo
                     - ↑classname: com.twinsoft.convertigo.beans.ngx.components.MobileSmartSourceType
                     - MobileSmartSourceType: 'script:this.getEffectiveProjectName ? this.getEffectiveProjectName() : '''''
               ↓PublishEvent [ngx.components.UIDynamicAction-1782139535107]: 
-                beanData: |
-                  '{
-                   "ionBean": "PublishEventAction",
-                   "topic": "plain:AssistantResponse",
-                   "data": "script:{}",
-                   "async": "plain:true"
-                  }'
+                beanData: '{"ionBean":"PublishEventAction","topic":"plain:AssistantResponse"}'
               ↓userId [ngx.components.UIControlVariable-1782407716067]: 
                 varValue: 
                   - xmlizable: 

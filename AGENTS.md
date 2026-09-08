@@ -99,6 +99,23 @@ rediscovering the same context.
 
 ## Runtime Notes
 
+- Eclipse Studio Agent onboarding is early access. `AppEvent.HandlePostMessage`
+  owns `agentReleasePolicy` (`publiclyAvailable: false`,
+  `minimumStudioVersion: '8.4.4'`). The exact `#early-access-agent` fragment
+  opts in, subject to the Studio version requirement. Capture it before initial
+  routing and preserve it across hosted navigation. Both activation URL fields
+  sent to Eclipse must use the local root URL without a fragment. When the host
+  reports `assistantRuntime: 'local'` and `localAgentStackAvailable: true`, Tigo
+  is enabled without the fragment, still subject to the minimum Studio version.
+  Installed projects alone must not unlock a remotely hosted Assistant. Do not
+  persist the opt-in in localStorage. A fresh hosted view without the configured
+  fragment must return to classic assistants.
+- Use the shared `global.isAssistantAgentReleaseEnabled()` for automatic agent
+  routing, menu visibility, direct route checks and onboarding actions. Keep
+  explicit Studio Web server and NoCode integrations working. The fragment is
+  a release flag, never an authentication bypass. Validate with
+  `node tests/assistant_early_access.test.js`.
+
 - Studio Web keeps the Assistant iframe URL stable. Project/profile/theme changes
   arrive through `lib_ConvertigoAssistant.context` and `select`, not iframe
   navigation. `GetTheme.applyAssistantHostTheme` applies Studio theme updates
