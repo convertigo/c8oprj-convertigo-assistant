@@ -152,6 +152,17 @@ rediscovering the same context.
   Bridge; renew the token before expiry and never expose it to browser state,
   prompts, logs, or conversation files. The same token authenticates both the
   Legacy and Flow MCP endpoints.
+- Eclipse can renew the local Assistant's admin session without navigating the
+  view. `AuthenticateStudioSession` owns a single-flight, timeout-bounded
+  `renewStudioSession` exchange via `lib_ConvertigoAssistant.authenticate.request`
+  and `.response`. Java authorizes only the main frame at the local Assistant
+  URL. The one-use Studio token is exchanged immediately, never persisted or
+  logged. Only a missing WEB_ADMIN check may trigger one retry; generic network
+  or operation failures must not be replayed. Web/NoCode keeps its own login flow.
+- Page's `installAgentSessionRecovery` checks protected call responses before
+  generated success actions run. A failed resume preserves conversation state
+  and shows an inline error. Clear old messages/polling only when applying a
+  successful history response. Test with `node tests/assistant_session_recovery.test.js`.
 - `agentBridge=1` is not enough to call the bridge. If the Assistant is served
   remotely inside Studio and no local bridge capability/local URL is provided,
   show an integrated local-agent activation message and do not call the remote

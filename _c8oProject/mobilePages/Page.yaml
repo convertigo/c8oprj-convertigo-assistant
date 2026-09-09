@@ -27,6 +27,7 @@ scriptContent:
         		} catch (e) {}
         		this.c8o.log.debug("[Assistant] loading with threadid: "+ this.threadid);
         		this.log("[Assistant] loading with threadid: "+ this.threadid);
+        		this.installAgentSessionRecovery();
         		/*End_c8o_PageConstructor*/
         /*Begin_c8o_PageInitialization*/
         		this.bindAgentHostContextListener();
@@ -45,6 +46,50 @@ scriptContent:
         		this.stopAgentElapsedTicker();
         		/*End_c8o_PageFinalization*/
         /*Begin_c8o_PageFunction*/
+            public installAgentSessionRecovery() {
+                var page: any = this;
+                if (page.agentSessionCallInstalled) { return; }
+                page.agentSessionCallInstalled = true;
+                var original = page.call;
+                page.call = function() {
+                    var args = Array.prototype.slice.call(arguments);
+                    var requestable = String(args[0] || '''').split(''#'')[0];
+                    var resume = requestable === ''lib_ConvertigoAssistant.AgentResumeConversation'';
+                    var protectedCall = /^lib_ConvertigoAssistant\.Agent(ResumeConversation|SendMessageRouter|CreateConversationRouter|CreateConversation|Settings)$/.test(requestable);
+                    if (!protectedCall) { return original.apply(page, args); }
+                    page.local = page.local || {};
+                    page.local.AgentOperationError = '''';
+                    if (resume) { page.local.AgentResumePending = true; }
+                    page.tick();
+                    var attempt = function() {
+                        return Promise.resolve().then(function() { return original.apply(page, args); }).then(function(response) {
+                            var error = response && (response.error || (response.document && response.document.error)
+                                || (response.result && response.result.error));
+                            if (error) { throw error; }
+                            if (resume && (!response || !response.result || !response.result.id || !response.result.state)) {
+                                throw new Error(''invalid_resume_response'');
+                            }
+                            return response;
+                        });
+                    };
+                    var recovery = page.global && page.global.callWithStudioSessionRecovery;
+                    var task = recovery ? recovery(attempt) : attempt();
+                    return task.catch(function(error) {
+                        var authentication = page.global && page.global.isStudioSessionAuthFailure
+                            && page.global.isStudioSessionAuthFailure(error);
+                        page.local.AgentOperationError = authentication
+                            ? page.t(''Agent_Studio_Session_Failed'', ''La session Studio n’a pas pu être rétablie. Fermez puis rouvrez la vue Assistant et réessayez.'')
+                            : page.t(''Agent_Operation_Failed'', ''L’opération a échoué. Réessayez ; si le problème persiste, consultez les logs du Studio.'');
+                        // Reject so generated success actions cannot consume a missing result.
+                        throw error;
+                    }).finally(function() {
+                        if (resume) { page.local.AgentResumePending = false; }
+                        page.tick();
+                    });
+                };
+            }
+        
+        
         	public debug() {
         		if (this.global && this.global.studio) {
         			this.c8o.log.debug("[Page] this.threadid: "+ this.threadid);
@@ -71,6 +116,8 @@ scriptContent:
         		} catch (e) {}
         		var runtimeTranslations: any = {
         			en: {
+                        Agent_Studio_Session_Failed: "The Studio session could not be restored. Close and reopen the Assistant view, then try again.",
+                        Agent_Operation_Failed: "The operation failed. Try again; if the problem persists, check the Studio logs.",
         				Agent_Title: "Tigo the agent",
         				Agent_Provider_Vibe_Copy: "Explore and create quickly",
         				Agent_Provider_Codex_Copy: "Build and modify code",
@@ -122,6 +169,8 @@ scriptContent:
         				Agent_Runtime_Updating_Vibe: "Updating Vibe..."
         			},
         			fr: {
+                        Agent_Studio_Session_Failed: "La session Studio n’a pas pu être rétablie. Fermez puis rouvrez la vue Assistant et réessayez.",
+                        Agent_Operation_Failed: "L’opération a échoué. Réessayez ; si le problème persiste, consultez les logs du Studio.",
         				Agent_Title: "Tigo l’agent",
         				Agent_Provider_Vibe_Copy: "Explorer et créer rapidement",
         				Agent_Provider_Codex_Copy: "Construire et modifier du code",
@@ -173,6 +222,8 @@ scriptContent:
         				Agent_Runtime_Updating_Vibe: "Mise à jour de Vibe en cours..."
         			},
         			it: {
+                        Agent_Studio_Session_Failed: "Impossibile ripristinare la sessione di Studio. Chiudi e riapri la vista Assistente, poi riprova.",
+                        Agent_Operation_Failed: "Operazione non riuscita. Riprova; se il problema persiste, consulta i log di Studio.",
         				Agent_Title: "Tigo l’agente",
         				Agent_Provider_Vibe_Copy: "Esplora e crea rapidamente",
         				Agent_Provider_Codex_Copy: "Crea e modifica codice",
@@ -224,6 +275,8 @@ scriptContent:
         				Agent_Runtime_Updating_Vibe: "Aggiornamento di Vibe..."
         			},
         			es: {
+                        Agent_Studio_Session_Failed: "No se pudo restablecer la sesión de Studio. Cierre y vuelva a abrir la vista del Asistente e inténtelo de nuevo.",
+                        Agent_Operation_Failed: "La operación falló. Inténtelo de nuevo; si el problema persiste, consulte los registros de Studio.",
         				Agent_Title: "Tigo el agente",
         				Agent_Provider_Vibe_Copy: "Explora y crea rápidamente",
         				Agent_Provider_Codex_Copy: "Crea y modifica código",
@@ -996,7 +1049,7 @@ scriptContent:
         			projects: [
                         { name: "lib_ConvertigoMCP", version: "0.2.5", tag: "v0.2.5", importUrl: "lib_ConvertigoMCP=https://github.com/convertigo/c8oprj-lib-c8o-mcp/releases/download/v0.2.5/lib_ConvertigoMCP.car" },
                         { name: "lib_ConvertigoAgentBridge", version: "0.4.4", tag: "v0.4.4", importUrl: "lib_ConvertigoAgentBridge=https://github.com/convertigo/c8oprj-lib-convertigo-agent-bridge/releases/download/v0.4.4/lib_ConvertigoAgentBridge.car" },
-                        { name: "lib_ConvertigoAssistant", version: "1.4.7", tag: "v1.4.7", importUrl: "lib_ConvertigoAssistant=https://github.com/convertigo/c8oprj-lib-convertigo-assistant/releases/download/v1.4.7/lib_ConvertigoAssistant.car" }
+                        { name: "lib_ConvertigoAssistant", version: "1.4.8", tag: "v1.4.8", importUrl: "lib_ConvertigoAssistant=https://github.com/convertigo/c8oprj-lib-convertigo-assistant/releases/download/v1.4.8/lib_ConvertigoAssistant.car" }
         			]
         		};
         	}
@@ -3541,6 +3594,8 @@ title: Tigo
                 - xmlizable: 
                   - ↑classname: com.twinsoft.convertigo.beans.ngx.components.MobileSmartSourceType
                   - MobileSmartSourceType: 'plain: '
+      ↓AgentOperationError [ngx.components.UICustom-1788958349118]: 
+        htmlTemplate: <div *ngIf="local?.AgentOperationError" class="agent-operation-error" role="alert">{{local.AgentOperationError}}</div>
       ↓StartCard [ngx.components.UIDynamicElement-1772100000093]: 
         beanData: '{"ionBean":"Card"}'
         tagName: ion-card
@@ -5703,7 +5758,7 @@ title: Tigo
                       beanData: |
                         '{
                          "ionBean": "Button",
-                         "Disabled": "script:conversation && conversation.conversationId === this.local.Conversation",
+                         "Disabled": "script:this.local.AgentResumePending === true || (conversation && conversation.conversationId === this.local.Conversation)",
                          "IonFill": "plain:clear",
                          "IonSize": "plain:small"
                         }'
@@ -5734,27 +5789,6 @@ title: Tigo
                             - ↑classname: com.twinsoft.convertigo.beans.ngx.components.MobileSmartSourceType
                             - MobileSmartSourceType: 'script:conversation && conversation.conversationId === this.local.Conversation ? ''Active'' : ''Reprendre'''
                       ↓Event [ngx.components.UIControlEvent-1781608119135]: 
-                        ↓RunID [ngx.components.UIDynamicAction-1781608120621]: 
-                          beanData: |
-                            '{
-                             "ionBean": "SetLocalAction",
-                             "Property": "plain:RunID",
-                             "Value": "script:''''"
-                            }'
-                        ↓Buffer [ngx.components.UIDynamicAction-1781608120623]: 
-                          beanData: |
-                            '{
-                             "ionBean": "SetLocalAction",
-                             "Property": "plain:Buffer",
-                             "Value": "script:{}"
-                            }'
-                        ↓Messages [ngx.components.UIDynamicAction-1781608120625]: 
-                          beanData: |
-                            '{
-                             "ionBean": "SetLocalAction",
-                             "Property": "plain:Messages",
-                             "Value": "script:[]"
-                            }'
                         ↓ResumeConversation [ngx.components.UIDynamicAction-1781608120627]: 
                           beanData: |
                             '{
@@ -5903,6 +5937,7 @@ title: Tigo
                                     				});
                                     			}
                                     		}
+                                    		page.local.RunID = '''';
                                     		page.local.StreamingIndex = null;
                                     		page.local.IsProcessing = false;
                                     		page.local.Buffer = {};
@@ -11973,5 +12008,20 @@ title: Tigo
             background-clip: padding-box;
             border-radius: 8px;
             overflow: hidden;
+          }
+          '
+↓AgentOperationErrorStyle [ngx.components.UIStyle-1788958353292]: 
+  styleContent: 
+    - xmlizable: 
+      - ↑classname: com.twinsoft.convertigo.beans.common.FormatedContent
+      - com.twinsoft.convertigo.beans.common.FormatedContent: 
+        →: |
+          '.agent-operation-error {
+            padding: 12px 16px;
+            margin: 0 0 16px;
+            border-left: 3px solid var(--ion-color-danger);
+            background: var(--ion-item-background);
+            color: var(--ion-text-color);
+            overflow-wrap: anywhere;
           }
           '

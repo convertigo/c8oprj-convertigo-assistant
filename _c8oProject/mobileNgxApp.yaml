@@ -576,6 +576,10 @@ tplProjectName: mobilebuilder_tpl_8_4_0_ngx
                         }
                     };
                     window[''setupMessageListener'']((msg) => {
+                        if (msg && msg.type === ''lib_ConvertigoAssistant.authenticate.response'') {
+                            if (page.global.completeStudioSessionRenewal) { page.global.completeStudioSessionRenewal(msg); }
+                            return;
+                        }
                         if (''init'' == msg.type) {
                             page.global.studio = true;
                             setTimeout(requestAssistantContext, 0);
@@ -816,59 +820,105 @@ tplProjectName: mobilebuilder_tpl_8_4_0_ngx
         - ↑classname: com.twinsoft.convertigo.beans.common.FormatedContent
         - com.twinsoft.convertigo.beans.common.FormatedContent: 
           →: |
-            '        var hash = "";
-                    try {
-                        hash = "" + (window.location.hash || "");
-                    } catch (e0) {}
+            '        var global = page.global;
+                    var pending = null;
+                    var flight = null;
+                    var requestNumber = 0;
+                    var w = window;
+                    var root = function() {
+                        var path = String(w.location.pathname || '''');
+                        var index = path.indexOf(''/projects/lib_ConvertigoAssistant/DisplayObjects/mobile'');
+                        return index < 0 ? null : path.substring(0, index);
+                    };
+                    var available = function() {
+                        return w === w.top && root() !== null && w[''java'']
+                            && typeof w[''java''].receiveFromJS === ''function'';
+                    };
+                    var authError = function(code) {
+                        var error = new Error(code);
+                        error[''studioAuthenticationRequired''] = true;
+                        return error;
+                    };
+                    global.isStudioSessionAuthFailure = function(error) {
+                        var visit = function(value, depth) {
+                            if (!value || depth > 5) { return false; }
+                            if (value.studioAuthenticationRequired === true) { return true; }
+                            if (typeof value === ''string'') {
+                                return value.indexOf(''A WEB_ADMIN session is required'') !== -1
+                                    || value.indexOf(''WEB_ADMIN authentication is required'') !== -1;
+                            }
+                            return [''message'', ''details'', ''error'', ''cause'', ''result'', ''document''].some(function(key) {
+                                return visit(value[key], depth + 1);
+                            });
+                        };
+                        return visit(error, 0);
+                    };
+                    var exchange = function(token) {
+                        var contextRoot = root();
+                        if (contextRoot === null) { return Promise.reject(authError(''studio_auth_unavailable'')); }
+                        var controller = new AbortController();
+                        var timeout = setTimeout(function() { controller.abort(); }, 10000);
+                        return fetch(contextRoot + ''/admin/services/engine.Authenticate'', {
+                            method: ''POST'', credentials: ''same-origin'', signal: controller.signal,
+                            headers: {''Content-Type'': ''application/x-www-form-urlencoded; charset=UTF-8'', Accept: ''text/xml''},
+                            body: ''authType=login&authToken='' + encodeURIComponent(token)
+                        }).then(function(response) {
+                            if (!response.ok) { throw authError(''studio_auth_rejected''); }
+                            return response.text();
+                        }).then(function(text) {
+                            var xml = new DOMParser().parseFromString(text, ''application/xml'');
+                            var authenticated = xml.querySelector(''authenticated'');
+                            if (xml.querySelector(''parsererror'') || !authenticated || authenticated.textContent.trim() !== ''true''
+                                || xml.querySelector(''error'')) { throw authError(''studio_auth_rejected''); }
+                        }).catch(function() {
+                            throw authError(''studio_auth_rejected'');
+                        }).finally(function() { clearTimeout(timeout); });
+                    };
+                    global.completeStudioSessionRenewal = function(message) {
+                        if (!pending || !message || message.requestId !== pending.id) { return; }
+                        var current = pending;
+                        pending = null;
+                        clearTimeout(current.timeout);
+                        var token = typeof message.authToken === ''string'' ? message.authToken : '''';
+                        if (!token) { current.reject(authError(''studio_auth_rejected'')); return; }
+                        exchange(token).then(current.resolve, current.reject);
+                    };
+                    global.renewStudioSession = function() {
+                        if (flight) { return flight; }
+                        if (!available()) { return Promise.reject(authError(''studio_auth_unavailable'')); }
+                        flight = new Promise(function(done, fail) {
+                            var id = ''auth_'' + Date.now() + ''_'' + (++requestNumber);
+                            var timeout = setTimeout(function() {
+                                pending = null;
+                                fail(authError(''studio_auth_timeout''));
+                            }, 10000);
+                            pending = {id: id, resolve: done, reject: fail, timeout: timeout};
+                            try {
+                                w[''java''].receiveFromJS(JSON.stringify({type: ''lib_ConvertigoAssistant.authenticate.request'', requestId: id}));
+                            } catch (error) {
+                                clearTimeout(timeout);
+                                pending = null;
+                                fail(authError(''studio_auth_unavailable''));
+                            }
+                        }).finally(function() { flight = null; });
+                        return flight;
+                    };
+                    global.callWithStudioSessionRecovery = function(operation) {
+                        return Promise.resolve().then(operation).catch(function(error) {
+                            if (!available() || !global.isStudioSessionAuthFailure(error)) { throw error; }
+                            // Only a rejected admin check is replayable; never retry an arbitrary operation failure.
+                            return global.renewStudioSession().then(operation);
+                        });
+                    };
+                    var hash = String(w.location.hash || '''');
                     var match = /(?:^#|[&#])authToken=([^&]+)/.exec(hash);
-                    if (match === null) {
-                        resolve();
-                        return;
-                    }
-                    var authToken = "";
-                    try {
-                        authToken = decodeURIComponent(match[1]);
-                    } catch (e1) {
-                        authToken = match[1];
-                    }
-                    try {
-                        var cleanHash = hash
-                            .replace(/(?:^#|[&#])authToken=[^&]*/g, "")
-                            .replace(/^&/, "#");
-                        window.history.replaceState(null, document.title,
-                            window.location.pathname + window.location.search + cleanHash);
-                    } catch (e2) {}
-                    var pathname = "";
-                    try {
-                        pathname = "" + window.location.pathname;
-                    } catch (e3) {}
-                    var projectsIndex = pathname.indexOf("/projects/");
-                    var convertigoRoot = projectsIndex >= 0 ? pathname.substring(0, projectsIndex) : "";
-                    var authenticateUrl = convertigoRoot + "/admin/services/engine.Authenticate";
-                    fetch(authenticateUrl, {
-                        method: "POST",
-                        credentials: "same-origin",
-                        headers: {
-                            "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
-                            "Accept": "application/json, text/xml, */*"
-                        },
-                        body: "authType=login&authToken=" + encodeURIComponent(authToken)
-                    }).then(function(response) {
-                        if (!response.ok) {
-                            throw new Error("Studio authentication failed with HTTP " + response.status);
-                        }
-                        return response.text();
-                    }).then(function(responseText) {
-                        var text = ("" + responseText).toLowerCase();
-                        if (text.indexOf("<authenticated>false</authenticated>") !== -1
-                            || text.indexOf(''"authenticated":false'') !== -1
-                            || text.indexOf("authtoken not valid") !== -1) {
-                            throw new Error("The Studio authentication token was rejected.");
-                        }
-                        resolve();
-                    }).catch(function(error) {
-                        reject(error);
-                    });'
+                    if (!match) { resolve(); return; }
+                    var token = '''';
+                    try { token = decodeURIComponent(match[1]); } catch (e) { token = match[1]; }
+                    var cleanHash = hash.replace(/(?:^#|[&#])authToken=[^&]*/g, '''').replace(/^&/, ''#'');
+                    w.history.replaceState(w.history.state, document.title, w.location.pathname + w.location.search + cleanHash);
+                    exchange(token).then(resolve, reject);
+            '
     comment: Exchange the one-use Eclipse Studio token before any Assistant sequence runs.
 ↓Style [ngx.components.UIStyle-1771929741648]: 
   comment: You can add some global application styles here
